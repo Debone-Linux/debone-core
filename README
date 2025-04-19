@@ -1,0 +1,41 @@
+# Debone Core
+
+Debone Core is built around a streamlined Linux kernel configured with tinyconfig, paired with BusyBox to provide essential userland tools in a very minimal footprint.
+
+Project link: https://github.com/Debone-Linux/debone-core
+
+## System Requirement
+
+1. Intel PC running Debian for building Linux kernel and initramfs.
+2. Internet connection to download source code.
+3. QEMU for testing.
+
+## Building Debone
+
+In case the script is not executable do the following:
+```
+chmod +x build-debone-core.sh
+```
+
+Execute the script to build Debone Core:
+```
+./build-debone-core.sh
+```
+
+## Test on QEMU
+```
+qemu-system-x86_64 -m 32M -kernel bzImage -initrd initramfs.img \
+    -append "console=ttyS0" -nographic
+```
+
+## Test on QEMU with KVM
+```
+qemu-system-x86_64 -enable-kvm -m 32M -cpu host,-svm -smp 4 \
+    -kernel bzImage \
+    -initrd initramfs.img \
+    -append "console=ttyS0" -nographic
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
