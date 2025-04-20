@@ -1,0 +1,13 @@
+diff -ur a/libbb/hash_md5_sha.c b/libbb/hash_md5_sha.c
+--- a/libbb/hash_md5_sha.c	2024-09-26 07:00:52
++++ b/libbb/hash_md5_sha.c	2025-04-19 21:04:43
+@@ -1313,7 +1313,9 @@
+ 	hash_size = 8;
+ 	if (ctx->process_block == sha1_process_block64
+ #if ENABLE_SHA1_HWACCEL
++# if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+ 	 || ctx->process_block == sha1_process_block64_shaNI
++# endif
+ #endif
+ 	) {
+ 		hash_size = 5;

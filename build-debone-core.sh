@@ -3,6 +3,15 @@
 set -ex
 
 ARCH=$(uname -m)
+if [ $ARCH = 'x86_64' ] ; then
+    IMAGE="bzImage"
+    CONSOLE="ttyS0"
+fi
+if [ $ARCH = 'aarch64' ] ; then
+    ARCH="arm64"
+    IMAGE="Image"
+    CONSOLE="ttyAMA0"
+fi
 
 DISTRO_NAME="Debone"
 DISTRO_EDITION="Core"
@@ -21,7 +30,7 @@ if [ -f busybox/busybox ] ; then
 fi
 
 rebuild_kernel="y"
-if [ -f linux/arch/$ARCH/boot/bzImage ] ; then
+if [ -f linux/arch/$ARCH/boot/$IMAGE ] ; then
     printf "Rebuild linux kernel? (y/n): "
     read rebuild_kernel
 fi
@@ -42,6 +51,7 @@ if [ $rebuild_busybox = "y" ] ; then
         make defconfig
         sed -i 's/^# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
         sed -i 's/^CONFIG_MAN=y/# CONFIG_MAN is not set/' .config
+        patch -p1 < ../patches/fix-sha1-shani-portability.patch
         make -j$(nproc)
     cd ..
 fi
@@ -70,6 +80,8 @@ if [ $rebuild_kernel = "y" ] ; then
         scripts/config --enable TTY
         scripts/config --enable SERIAL_8250
         scripts/config --enable SERIAL_8250_CONSOLE
+        scripts/config --enable SERIAL_AMBA_PL011
+        scripts/config --enable SERIAL_AMBA_PL011_CONSOLE
         scripts/config --enable PROC_FS
         scripts/config --enable SYSFS
         scripts/config --enable DEVTMPFS
@@ -79,7 +91,7 @@ if [ $rebuild_kernel = "y" ] ; then
         scripts/config --enable PCI
 
         make olddefconfig
-        make -j$(nproc) bzImage
+        make -j$(nproc) $IMAGE
     cd ..
 fi
 
@@ -121,7 +133,7 @@ chmod +x initramfs/init
 
 # Create inittab that gets called by SysVinit
 cat << EOF > initramfs/etc/inittab
-ttyS0::respawn:/bin/sh
+$CONSOLE::respawn:/bin/sh
 ::sysinit:/bin/hostname -F /etc/hostname
 ::ctrlaltdel:/sbin/reboot -f
 ::shutdown:/bin/echo "Shutting down..."
@@ -140,8 +152,10 @@ cd initramfs
     find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.img
 cd ..
 
-# Copy linux kernel to root directory for QEMU test
-cp linux/arch/$ARCH/boot/bzImage ./
+# Copy linux kernel to images directory
+mkdir -p images/$ARCH/
+cp linux/arch/$ARCH/boot/$IMAGE images/$ARCH/
+cp initramfs.img images/$ARCH/
 
 # Completed
 echo "All done!"
