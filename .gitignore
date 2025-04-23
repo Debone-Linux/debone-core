@@ -4,5 +4,3 @@ files/*
 linux/*
 linux/.*
 initramfs/*
-bzImage
-initramfs.img

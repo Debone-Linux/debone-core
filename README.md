@@ -12,9 +12,10 @@ Project link: https://github.com/Debone-Linux/debone-core
 If you own ARM64 machine, aarch64 build is functional by now (testing).
 
 ## Software Requirement
+
 ```
 apt update
-apt install -y git build-essential bison flex bc libelf-dev libssl-dev libncurses-dev qemu-system-x86 qemu-system-arm cpio gzip
+apt install -y git build-essential bison flex bc libelf-dev libssl-dev libncurses-dev qemu-system-x86 qemu-system-arm gcc-aarch64-linux-gnu cpio gzip
 ```
 
 ## Building Debone
@@ -30,13 +31,15 @@ Execute the script to build Debone Core:
 ```
 
 ## Run on QEMU
-Linux x86_64
+
+Debone x86_64 guest on any host:
 ```
 qemu-system-x86_64 -m 32M -kernel bzImage -initrd initramfs.img \
     -machine pc -cpu qemu64 \
     -append "console=ttyS0" -nographic
 ```
-Linux ARM64 and macOS Apple Silicon
+
+Debone arm64 guest on any host:
 ```
 qemu-system-aarch64 -m 32M -kernel Image -initrd initramfs.img \
     -machine virt -cpu cortex-a53 \
@@ -45,19 +48,21 @@ qemu-system-aarch64 -m 32M -kernel Image -initrd initramfs.img \
 
 ## Run on QEMU with Hardware Acceleration
 
-Linux x86_64
+Debone x86_64 guest on Linux x86_64 host:
 ```
-qemu-system-x86_64  -m 32M -kernel bzImage -initrd initramfs.img \
+qemu-system-x86_64 -m 32M -kernel bzImage -initrd initramfs.img \
     -machine pc,accel=kvm -cpu host \
     -append "console=ttyS0" -nographic
 ```
-Linux ARM64
+
+Debone arm64 guest on Linux ARM64 host:
 ```
 qemu-system-aarch64 -m 32M -kernel Image -initrd initramfs.img \
     -machine virt,accel=kvm -cpu host \
     -append "console=ttyAMA0" -nographic
 ```
-macOS Apple Silicon
+
+Debone arm64 guest on macOS Apple Silicon host:
 ```
 qemu-system-aarch64 -m 32M -kernel Image -initrd initramfs.img \
     -machine virt,accel=hvf -cpu host \

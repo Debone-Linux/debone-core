@@ -2,15 +2,31 @@
 
 set -ex
 
-ARCH=$(uname -m)
+# Set or get default ARCH to host
+ARCH=${ARCH:-$(uname -m)}
+
+# Validate supported architectures
+case "$ARCH" in
+  x86_64|aarch64)
+    echo "ARCH is supported: $ARCH"
+    ;;
+  *)
+    echo "Error: Unsupported ARCH '$ARCH'" >&2
+    exit 1
+    ;;
+esac
+
+# Linux kernel and console naming based on ARCH
 if [ $ARCH = 'x86_64' ] ; then
     IMAGE="bzImage"
     CONSOLE="ttyS0"
+    CROSS_COMPILE=x86_64-linux-gnu-
 fi
 if [ $ARCH = 'aarch64' ] ; then
     ARCH="arm64"
     IMAGE="Image"
     CONSOLE="ttyAMA0"
+    CROSS_COMPILE=aarch64-linux-gnu-
 fi
 
 DISTRO_NAME="Debone"
@@ -48,11 +64,11 @@ if [ $rebuild_busybox = "y" ] ; then
     mv busybox* busybox
     echo "Compiling busybox..."
     cd busybox
-        make defconfig
+        make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE defconfig
         sed -i 's/^# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
         sed -i 's/^CONFIG_MAN=y/# CONFIG_MAN is not set/' .config
         patch -p1 < ../patches/fix-sha1-shani-portability.patch
-        make -j$(nproc)
+        make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j$(nproc)
     cd ..
 fi
 
@@ -69,7 +85,7 @@ if [ $rebuild_kernel = "y" ] ; then
     mv linux* linux
     echo "Compiling linux kernel..."
     cd linux
-        make tinyconfig
+        make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE tinyconfig
 
         scripts/config --enable 64BIT
         scripts/config --enable BLK_DEV_INITRD
@@ -90,8 +106,8 @@ if [ $rebuild_kernel = "y" ] ; then
         scripts/config --enable ACPI
         scripts/config --enable PCI
 
-        make olddefconfig
-        make -j$(nproc) $IMAGE
+        make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE olddefconfig
+        make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j$(nproc) $IMAGE $DTBS
     cd ..
 fi
 
@@ -149,13 +165,14 @@ EOF
 
 # Create initramfs image
 cd initramfs
-    find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.img
+    find . | cpio -o -H newc | gzip > ../initramfs.img
 cd ..
 
 # Copy linux kernel to images directory
 mkdir -p images/$ARCH/
 cp linux/arch/$ARCH/boot/$IMAGE images/$ARCH/
 cp initramfs.img images/$ARCH/
+rm initramfs.img
 
 # Completed
 echo "All done!"
