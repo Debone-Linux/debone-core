@@ -1,5 +1,5 @@
-title: Just the Docs Template
-description: A starter template for a Jeykll site using the Just the Docs theme!
+title: Printable Docs
+description: Just the Docs theme with Paged.js to make it printable!
 theme: just-the-docs
 
 url: https://debone-linux.github.io/debone-core
