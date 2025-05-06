@@ -1,0 +1,55 @@
+@page {
+    size: letter;
+    margin: 0.75in;
+  
+    @top-center{
+      content: string("Hello");
+      font-weight: bold;
+      font-size: 12pt;
+    }
+  
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+
+  .toc {
+    page-break-after: always;
+  }
+  
+  .toc a::after {
+    content: leader('.') target-counter(attr(href), page);
+  }
+
+  .chapter {
+    page-break-before: always;
+  }
+  
+  .chapter h1 {
+    font-size: 24pt;
+    margin-top: 2in;
+    padding-bottom: 0.2em;
+  }
+  
+  .section {
+    margin-top: 2em;
+  }
+  
+  .section h2 {
+    font-size: 18pt;
+    margin-top: 1.5em;
+  }
+  
+  .subsection {
+    margin-left: 1em;
+    margin-top: 1.2em;
+  }
+  
+  .subsection h3 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
